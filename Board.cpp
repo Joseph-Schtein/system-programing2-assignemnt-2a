@@ -7,27 +7,24 @@
 #include <array>
 using ariel::Direction;
 
+unsigned int const INCREMENTOR = 100;
 
-
-void ariel::Board::post(unsigned int rowIndex, unsigned int columIndex, Direction dir, string input){
-    std::vector<char> charInput(input.c_str(), input.c_str() + input.size());
+void ariel::Board::post(unsigned int rowIndex, unsigned int columIndex, Direction dir, string const& input){
+    std::vector<char> charInput(input.begin(), input.end());
 
     if(rowIndex+input.size() > board.size()){
-        board.resize(rowIndex+input.length()+100, std::vector<char>(columIndex, '_'));
-        boolBoard.resize(rowIndex+input.length()+100, std::vector<bool>(columIndex, false));
+        board.resize(rowIndex+input.length()+INCREMENTOR, std::vector<char>(columIndex, '_'));
     }
 
     if(columIndex+input.size() > board.at(0).size()){
         for (unsigned int i = 0 ; i < board.size() ; i++){
-            board.at(i).resize(columIndex+input.length()+100, '_');
-            boolBoard.at(i).resize(columIndex+input.length()+100, false);
+            board.at(i).resize(columIndex+input.length()+INCREMENTOR, '_');
         }    
     }
 
     if(dir == Direction::Horizontal){
         for(auto& index : charInput){
             board.at(rowIndex).at(columIndex) = index;
-            boolBoard.at(rowIndex).at(columIndex) = true;
             columIndex++;
             
         }
@@ -38,7 +35,6 @@ void ariel::Board::post(unsigned int rowIndex, unsigned int columIndex, Directio
     if(dir == Direction::Vertical){
         for(auto& index : charInput){
             board.at(rowIndex).at(columIndex) = index;
-            boolBoard.at(rowIndex).at(columIndex) = true;
             rowIndex++;
         }
         
@@ -47,7 +43,7 @@ void ariel::Board::post(unsigned int rowIndex, unsigned int columIndex, Directio
 
 string ariel::Board::read(unsigned int rowIndex, unsigned int columIndex, Direction dir, unsigned int length){
 
-    string output = "";
+    string output;
 
     if(dir == Direction::Horizontal){
         for(unsigned int i = columIndex; i < columIndex+length; i++){
@@ -65,68 +61,93 @@ string ariel::Board::read(unsigned int rowIndex, unsigned int columIndex, Direct
 
 void ariel::Board::show(){
     
-    unsigned int top = boolBoard.size();
-    unsigned int bottom = boolBoard.size()+1;
-    unsigned int left = boolBoard.at(0).size();
-    unsigned int right = boolBoard.at(0).size()+1; 
+    unsigned int top = board.size();
+    unsigned int bottom = board.size()+1;
+    unsigned int left = board.at(0).size();
+    unsigned int right = board.at(0).size()+1; 
 
 
     
-    for (unsigned int i = 0; i < boolBoard.at(0).size(); i++){
+    for (unsigned int i = 0; i < board.at(0).size(); i++){
         bool fromTop = true;
         bool fromBottom = true;
-        for (unsigned int j = 0; j < boolBoard.size() && (fromTop == true || fromBottom == true); j++){
+        for (unsigned int j = 0; j < board.size() && (fromTop || fromBottom ); j++){
             
-            if(boolBoard.at(j).at(i) == true && fromTop == true){
-                if(top == boolBoard.size() || top > j){
+            if(board.at(j).at(i) != '_' && fromTop){
+                if(top == board.size() || top > j){
                     top = j;
                     fromTop = false;
                 }
             }
 
-            if(boolBoard.at(boolBoard.size()-j-1).at(i) == true && fromBottom == true){
-                if(bottom == boolBoard.size()+1 || bottom < boolBoard.size()-j-1){
-                    bottom = boolBoard.size()-j-1;
+            if(board.at(board.size()-j-1).at(i) != '_' && fromBottom){
+                if(bottom == board.size()+1 || bottom < board.size()-j-1){
+                    bottom = board.size()-j-1;
                     fromBottom = false;
                 }    
             }
         }
     }
 
-    for (unsigned int i = 0; i < boolBoard.size(); i++){
+    for (unsigned int i = 0; i < board.size(); i++){
         bool fromLeft = true;
         bool fromRight = true;
-        for (unsigned int j = 0; j < boolBoard.at(i).size() && (fromLeft == true || fromRight == true); j++){
+        for (unsigned int j = 0; j < board.at(i).size() && (fromLeft || fromRight); j++){
             
-            if(boolBoard.at(i).at(j) == true && fromLeft == true){
-                if(left == boolBoard.at(0).size() || left > j){
+            if(board.at(i).at(j) != '_' && fromLeft ){
+                if(left == board.at(0).size() || left > j){
                     left = j;
                     fromLeft = false;
                 }
             }
 
-            if(boolBoard.at(i).at(boolBoard.size()-j-1) == true && fromRight == true){
-                if(right == boolBoard.at(0).size()+1 || right < boolBoard.at(i).size()-j-1){
-                    right = boolBoard.size()-j-1;
+            if(board.at(i).at(board.size()-j-1) != '_' && fromRight){
+                if(right == board.at(0).size()+1 || right < board.at(i).size()-j-1){
+                    right = board.size()-j-1;
                     fromRight = false;
                 }    
             }
         }
     }
 
-    top--;
-    bottom++;
-    left-=2;
-    right+=2;
-
-
-    for(unsigned int i = top; i <= bottom; i++){    
-        cout << i << ":" <<"\t";
-
-        for(unsigned int j = left; j <= right; j++){
-            cout << board.at(i).at(j);
-        }
-
-        cout << endl;
+    if(top != 0){
+        top--;
     }
+
+    if(bottom != board.size()-1){
+        bottom++;
+    }
+
+    if(left != 0 && left != 1){
+        left-=2;
+    }
+
+    else if(left == 1){
+        left--;
+    }    
+
+
+    if(right != board.size()-1 && right != board.size()-2){
+        right+=2;
+    }
+
+    else if(right == board.size()-2){
+        right++;
+    }   
+    
+    if(right != board.at(0).size()+1 && top != board.size() && bottom != board.size()+1 && left != board.at(0).size()){
+        for(unsigned int i = top; i <= bottom; i++){    
+            cout << i << ":" <<"\t";
+
+            for(unsigned int j = left; j <= right; j++){
+                cout << board.at(i).at(j);
+            }
+
+            cout << endl;
+        }
+    }
+
+    else{
+        cout << "there is nothing to print because the board is empty" << endl;
+    }    
 }
